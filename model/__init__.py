@@ -86,7 +86,6 @@ class MainModel:
         self._results[plugin_name] = rows
         return rows
 
-
     def run_file_scan(self, progress_callback: ProgressCallback):
         if self._image_path is None:
             return []
@@ -99,4 +98,4 @@ class MainModel:
         )
 
 
-__all__ = ["MainModel"] 
+__all__ = ["MainModel"]

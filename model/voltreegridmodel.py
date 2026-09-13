@@ -13,10 +13,10 @@ class VolTreeGridModel(QAbstractTableModel):
         self._grid: TreeGrid = plugin.run()
 
         self._rows = []
+
         def visitor(node: TreeNode, acc: list):
             row = []
             for column_index, column in enumerate(self._grid.columns):
-
                 renderer = CLIRenderer._type_renderers.get(
                     column.type, CLIRenderer._type_renderers["default"]
                 )
@@ -24,7 +24,7 @@ class VolTreeGridModel(QAbstractTableModel):
                 row.append(renderer(node.values[column_index]))
             acc.append(row)
             return acc
-            
+
         self._grid.visit(node=None, function=visitor, initial_accumulator=self._rows)
 
     def rowCount(self, parent=QModelIndex()) -> int:

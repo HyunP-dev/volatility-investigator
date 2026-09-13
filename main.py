@@ -9,12 +9,8 @@ from model.voltreegridmodel import VolTreeGridModel
 volatility3.framework.require_interface_version(2, 0, 0)
 failures = volatility3.framework.import_files(volatility3.plugins, True)
 
-from volatility3.framework import automagic, contexts, interfaces, plugins
+from volatility3.framework import automagic, contexts, plugins
 from volatility3.framework.constants import ProgressCallback
-from volatility3.framework.renderers import NotApplicableValue, UnreadableValue
-
-
-
 
 
 class MainWindow(QMainWindow):
@@ -30,12 +26,24 @@ class MainWindow(QMainWindow):
 
         self.pluginsView = QTreeView()
         self.pluginsView.setEditTriggers(QTreeView.EditTrigger.NoEditTriggers)
-        self.pluginsView.setRootIsDecorated(False)
         self.pluginsView.setHeaderHidden(True)
 
         self.pluginsView.setModel(pluginsModel := QStandardItemModel())
-        for plugin_name in volatility3.framework.list_plugins():
-            pluginsModel.appendRow(QStandardItem(plugin_name))
+        pluginsModel.appendRow(windows_root := QStandardItem("Windows"))
+        pluginsModel.appendRow(mac_root := QStandardItem("macOS"))
+        pluginsModel.appendRow(linux_root := QStandardItem("Linux"))
+        pluginsModel.appendRow(etc_root := QStandardItem("etc"))
+        list_plugins: dict = volatility3.framework.list_plugins()
+        for plugin_name in sorted(list_plugins.keys()):
+            if plugin_name.startswith("windows."):
+                windows_root.appendRow(QStandardItem(plugin_name))
+            elif plugin_name.startswith("mac."):
+                mac_root.appendRow(QStandardItem(plugin_name))
+            elif plugin_name.startswith("linux."):
+                linux_root.appendRow(QStandardItem(plugin_name))
+            else:
+                etc_root.appendRow(QStandardItem(plugin_name))
+        self.pluginsView.expandAll()
 
         self.resultView = QTreeView()
         self.resultView.setRootIsDecorated(False)
@@ -66,8 +74,13 @@ class MainWindow(QMainWindow):
 
     @Slot(QTreeWidgetItem)
     def analyse(self, index: QModelIndex):
+        if index.parent() == QModelIndex():
+            return
+
         self.log(index.data(Qt.ItemDataRole.DisplayRole) + " 를 시작하였습니다.")
-        worker = PluginWorker(self, index.data(Qt.ItemDataRole.DisplayRole), self.image_path)
+        worker = PluginWorker(
+            self, index.data(Qt.ItemDataRole.DisplayRole), self.image_path
+        )
 
         def on_progress(p, d):
             self.log(f"{p} : {d}")
@@ -134,13 +147,13 @@ if __name__ == "__main__":
     app.setStyle("fusion")
 
     palette = QPalette()
-    palette.setColor(QPalette.ColorRole.Window, QColor(0xF7, 0xF7, 0xF7))
+    palette.setColor(QPalette.ColorRole.Window, QColor(240, 240, 240))
     palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.black)
     palette.setColor(QPalette.ColorRole.Base, Qt.GlobalColor.white)
     palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.black)
-    palette.setColor(QPalette.ColorRole.Button, QColor(240, 240, 240))
+    palette.setColor(QPalette.ColorRole.Button, QColor(225, 225, 225))
     palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.black)
-    palette.setColor(QPalette.ColorRole.Highlight, QColor(0x48, 0x77, 0xD7))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(0, 120, 215))
     palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.white)
 
     app.setPalette(palette)
